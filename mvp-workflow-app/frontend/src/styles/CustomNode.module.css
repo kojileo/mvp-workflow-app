@@ -1,0 +1,67 @@
+.customNode {
+  padding: 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  color: #ffffff;
+  text-align: center;
+  width: 180px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.customNode:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.handle {
+  width: 10px;
+  height: 10px;
+  background-color: #ffffff;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.trigger {
+  background-color: #ff6b6b;
+}
+
+.action {
+  background-color: #4ecdc4;
+}
+
+.condition {
+  background-color: #45aaf2;
+}
+
+.loop {
+  background-color: #a55eea;
+}
+
+.inputFile {
+  background-color: #26de81;
+}
+
+.end {
+  background-color: #778ca3;
+}
+
+.summarize {
+  background-color: #fd9644;
+}

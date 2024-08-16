@@ -1,0 +1,55 @@
+.workflowEditor {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--background-dark);
+}
+
+.flowContainer {
+  flex-grow: 1;
+  height: 100%;
+  background-color: #1a1a2e; /* より暗い青みがかった背景色 */
+}
+
+.createApiButton {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: var(--highlight-blue);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.createApiButton:hover {
+  background-color: #0080a0;
+  transform: translateY(-2px);
+}
+
+.apiResponse {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  color: white;
+  max-width: 300px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.addNodeButton {
+  width: 100%;
+  padding: 8px;
+  text-align: left;
+}
