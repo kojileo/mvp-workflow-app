@@ -14,7 +14,31 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
   onDelete,
 }) => {
   const handleInputChange = (key: string, value: any) => {
-    onUpdate({ ...node, params: { ...node.params, [key]: value } });
+    let parsedValue = value;
+    if (
+      typeof value === "string" &&
+      (key === "requestParameters" ||
+        key === "requestHeaders" ||
+        key === "requestBody" ||
+        key === "headers" ||
+        key === "body")
+    ) {
+      try {
+        parsedValue = JSON.parse(value);
+      } catch (error) {
+        console.error(`Invalid JSON format for ${key}:`, error);
+        parsedValue = value; // JSONの解析に失敗した場合は、文字列をそのまま使用
+      }
+    }
+    onUpdate({ ...node, params: { ...node.params, [key]: parsedValue } });
+  };
+
+  // JSON形式のフィールドの表示を修正
+  const getJsonString = (value: any) => {
+    if (typeof value === "string") {
+      return value;
+    }
+    return JSON.stringify(value, null, 2);
   };
 
   const handleDelete = () => {
@@ -40,24 +64,67 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     </div>
   );
 
+  const handleParamChange = (key: string, value: any) => {
+    const updatedParams = { ...node.params, [key]: value };
+    onUpdate({ ...node, params: updatedParams });
+  };
+
   const renderFields = () => {
     switch (node.type) {
       case "start":
         return (
           <div>
-            <h3 className={styles.title}>Start Node</h3>
+            <h3 className={styles.title}>スタートノード</h3>
             {renderCommonFields()}
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Input Prompt:
-                <input
-                  type="text"
-                  value={node.params.inputPrompt || ""}
+                APIの説明:
+                <textarea
+                  value={getJsonString(node.params.description)}
                   onChange={(e) =>
-                    handleInputChange("inputPrompt", e.target.value)
+                    handleInputChange("description", e.target.value)
                   }
-                  placeholder="Enter input prompt"
-                  className={styles.input}
+                  placeholder="APIの説明を入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                リクエストパラメータ:
+                <textarea
+                  value={getJsonString(node.params.requestParameters)}
+                  onChange={(e) =>
+                    handleInputChange("requestParameters", e.target.value)
+                  }
+                  placeholder="リクエストパラメータをJSON形式で入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                リクエストヘッダー:
+                <textarea
+                  value={getJsonString(node.params.requestHeaders)}
+                  onChange={(e) =>
+                    handleInputChange("requestHeaders", e.target.value)
+                  }
+                  placeholder="リクエストヘッダーをJSON形式で入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                リクエストボディ:
+                <textarea
+                  value={getJsonString(node.params.requestBody)}
+                  onChange={(e) =>
+                    handleInputChange("requestBody", e.target.value)
+                  }
+                  placeholder="リクエストボディをJSON形式で入力してください"
+                  className={styles.textarea}
                 />
               </label>
             </div>
@@ -66,17 +133,17 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       case "llm":
         return (
           <div>
-            <h3 className={styles.title}>LLM Node</h3>
+            <h3 className={styles.title}>LLMノード</h3>
             {renderCommonFields()}
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Model:
+                モデル:
                 <select
-                  value={node.params.model || ""}
+                  value={getJsonString(node.params.model)}
                   onChange={(e) => handleInputChange("model", e.target.value)}
                   className={styles.select}
                 >
-                  <option value="">Select Model</option>
+                  <option value="">モデルを選択</option>
                   <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                   <option value="gpt-4">GPT-4</option>
                 </select>
@@ -84,11 +151,11 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                Prompt:
+                プロンプト:
                 <textarea
-                  value={node.params.prompt || ""}
+                  value={getJsonString(node.params.prompt)}
                   onChange={(e) => handleInputChange("prompt", e.target.value)}
-                  placeholder="Enter prompt for LLM"
+                  placeholder="LLMのプロンプトを入力してください"
                   className={styles.textarea}
                 />
               </label>
@@ -98,134 +165,169 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       case "codeExecution":
         return (
           <div>
-            <h3>Code Execution Node</h3>
+            <h3 className={styles.title}>コード実行ノード</h3>
             {renderCommonFields()}
-            <label>
-              Python Code:
-              <textarea
-                value={node.params.code || ""}
-                onChange={(e) => handleInputChange("code", e.target.value)}
-                placeholder="Enter Python code to execute"
-              />
-            </label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                Pythonコード:
+                <textarea
+                  value={getJsonString(node.params.code)}
+                  onChange={(e) => handleInputChange("code", e.target.value)}
+                  placeholder="実行するPythonコードを入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
           </div>
         );
       case "httpRequest":
         return (
           <div>
-            <h3>HTTP Request Node</h3>
+            <h3 className={styles.title}>HTTPリクエストノード</h3>
             {renderCommonFields()}
-            <label>
-              URL:
-              <input
-                type="text"
-                value={node.params.url || ""}
-                onChange={(e) => handleInputChange("url", e.target.value)}
-                placeholder="Enter URL"
-              />
-            </label>
-            <label>
-              Method:
-              <select
-                value={node.params.method || "GET"}
-                onChange={(e) => handleInputChange("method", e.target.value)}
-              >
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="DELETE">DELETE</option>
-              </select>
-            </label>
-            <label>
-              Headers:
-              <textarea
-                value={node.params.headers || ""}
-                onChange={(e) => handleInputChange("headers", e.target.value)}
-                placeholder="Enter headers in JSON format"
-              />
-            </label>
-            <label>
-              Body:
-              <textarea
-                value={node.params.body || ""}
-                onChange={(e) => handleInputChange("body", e.target.value)}
-                placeholder="Enter request body"
-              />
-            </label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                URL:
+                <input
+                  type="text"
+                  value={getJsonString(node.params.url)}
+                  onChange={(e) => handleInputChange("url", e.target.value)}
+                  placeholder="URLを入力してください"
+                  className={styles.input}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                メソッド:
+                <select
+                  value={getJsonString(node.params.method)}
+                  onChange={(e) => handleInputChange("method", e.target.value)}
+                  className={styles.select}
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                ヘッダー:
+                <textarea
+                  value={getJsonString(node.params.headers)}
+                  onChange={(e) => handleInputChange("headers", e.target.value)}
+                  placeholder="ヘッダーをJSON形式で入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                ボディ:
+                <textarea
+                  value={getJsonString(node.params.body)}
+                  onChange={(e) => handleInputChange("body", e.target.value)}
+                  placeholder="リクエストボディをJSON形式で入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
           </div>
         );
       case "template":
         return (
           <div>
-            <h3>Template Node</h3>
+            <h3 className={styles.title}>テンプレートノード</h3>
             {renderCommonFields()}
-            <label>
-              Template:
-              <textarea
-                value={node.params.template || ""}
-                onChange={(e) => handleInputChange("template", e.target.value)}
-                placeholder="Enter template text"
-              />
-            </label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                テンプレート:
+                <textarea
+                  value={getJsonString(node.params.template)}
+                  onChange={(e) =>
+                    handleInputChange("template", e.target.value)
+                  }
+                  placeholder="テンプレートテキストを入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
           </div>
         );
       case "database":
         return (
           <div>
-            <h3>Database Node</h3>
+            <h3 className={styles.title}>データベースノード</h3>
             {renderCommonFields()}
-            <label>
-              Connection String:
-              <input
-                type="text"
-                value={node.params.connectionString || ""}
-                onChange={(e) =>
-                  handleInputChange("connectionString", e.target.value)
-                }
-                placeholder="Enter database connection string"
-              />
-            </label>
-            <label>
-              Query:
-              <textarea
-                value={node.params.query || ""}
-                onChange={(e) => handleInputChange("query", e.target.value)}
-                placeholder="Enter SQL query"
-              />
-            </label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                接続文字列:
+                <input
+                  type="text"
+                  value={getJsonString(node.params.connectionString)}
+                  onChange={(e) =>
+                    handleInputChange("connectionString", e.target.value)
+                  }
+                  placeholder="データベース接続文字列を入力してください"
+                  className={styles.input}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                クエリ:
+                <textarea
+                  value={getJsonString(node.params.query)}
+                  onChange={(e) => handleInputChange("query", e.target.value)}
+                  placeholder="SQLクエリを入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
           </div>
         );
       case "email":
         return (
           <div>
-            <h3>Email Node</h3>
+            <h3 className={styles.title}>メールノード</h3>
             {renderCommonFields()}
-            <label>
-              To:
-              <input
-                type="email"
-                value={node.params.to || ""}
-                onChange={(e) => handleInputChange("to", e.target.value)}
-                placeholder="Enter recipient email"
-              />
-            </label>
-            <label>
-              Subject:
-              <input
-                type="text"
-                value={node.params.subject || ""}
-                onChange={(e) => handleInputChange("subject", e.target.value)}
-                placeholder="Enter email subject"
-              />
-            </label>
-            <label>
-              Body:
-              <textarea
-                value={node.params.body || ""}
-                onChange={(e) => handleInputChange("body", e.target.value)}
-                placeholder="Enter email body"
-              />
-            </label>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                宛先:
+                <input
+                  type="email"
+                  value={getJsonString(node.params.to)}
+                  onChange={(e) => handleInputChange("to", e.target.value)}
+                  placeholder="受信者のメールアドレスを入力してください"
+                  className={styles.input}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                件名:
+                <input
+                  type="text"
+                  value={getJsonString(node.params.subject)}
+                  onChange={(e) => handleInputChange("subject", e.target.value)}
+                  placeholder="メールの件名を入力してください"
+                  className={styles.input}
+                />
+              </label>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                本文:
+                <textarea
+                  value={getJsonString(node.params.body)}
+                  onChange={(e) => handleInputChange("body", e.target.value)}
+                  placeholder="メールの本文を入力してください"
+                  className={styles.textarea}
+                />
+              </label>
+            </div>
           </div>
         );
       default:

@@ -27,6 +27,7 @@ const nodeTypes: NodeType[] = [
   "template",
   "database",
   "email",
+  "end", // "end"を追加
 ];
 
 const WorkflowEditor: React.FC = () => {
@@ -38,6 +39,9 @@ const WorkflowEditor: React.FC = () => {
   const [showApiInfoModal, setShowApiInfoModal] = useState<boolean>(false);
   const [apiEndpoint, setApiEndpoint] = useState<string>("");
   const [apiInfo, setApiInfo] = useState<string>("");
+  const [showApiCreatedDialog, setShowApiCreatedDialog] =
+    useState<boolean>(false);
+  const [apiCreatedInfo, setApiCreatedInfo] = useState<string>("");
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -86,54 +90,14 @@ const WorkflowEditor: React.FC = () => {
   const handleCreateApi = async () => {
     try {
       const workflow: Workflow = {
-        apiEndPoint: apiEndpoint, // これは動的に設定する必要があります
-        description:
-          "インプットに指定したファイルを要約してテキストとして返却するAPIです。",
-        apiType: "POST",
-        apiRequestParameters: [
-          {
-            name: "maxLength",
-            type: "integer",
-            description: "要約の最大文字数",
-            required: false,
-            default: 500,
-          },
-        ],
-        apiRequestHeaders: [
-          {
-            name: "Authorization",
-            type: "string",
-            description: "Bearer トークン",
-            required: true,
-          },
-          {
-            name: "Content-Type",
-            type: "string",
-            description: "アプリケーションタイプ",
-            required: true,
-            default: "application/json",
-          },
-        ],
-        apiRequestBody: [
-          {
-            fileName: "{FilePath}",
-          },
-        ],
-        apiResponseHeaders: [
-          {
-            name: "Content-Type",
-            type: "string",
-            description: "アプリケーションタイプ",
-            value: "application/json",
-          },
-        ],
-        apiResponseBody: [
-          {
-            summary: "{Summary}",
-            originalFileName: "{FileName}",
-            summarizedLength: "{Length}",
-          },
-        ],
+        apiEndPoint: apiEndpoint,
+        description: "", // ユーザーが入力できるようにする
+        apiType: "POST", // デフォルト値、必要に応じて変更可能
+        apiRequestParameters: [],
+        apiRequestHeaders: [],
+        apiRequestBody: [],
+        apiResponseHeaders: [],
+        apiResponseBody: [],
         flow: nodes.map((node) => ({
           node: {
             nodeName: node.data.label,
@@ -144,31 +108,28 @@ const WorkflowEditor: React.FC = () => {
         })),
       };
 
+      // ノードの設定に基づいてワークフローを構築
+      nodes.forEach((node) => {
+        if (node.data.type === "start") {
+          // スタートノードの設定を追加
+          workflow.apiRequestParameters =
+            node.data.params.requestParameters || [];
+          workflow.apiRequestHeaders = node.data.params.requestHeaders || [];
+          workflow.apiRequestBody = node.data.params.requestBody || [];
+        } else if (node.data.type === "end") {
+          // エンドノードの設定を追加
+          workflow.apiResponseHeaders = node.data.params.responseHeaders || [];
+          workflow.apiResponseBody = node.data.params.responseBody || [];
+        }
+        // 他のノードタイプに応じた処理を追加
+      });
+
       const response = await createApi(workflow);
       setApiResponse(JSON.stringify(response, null, 2));
-
-      // API情報を設定
-      setApiInfo(`
-        APIエンドポイント: ${apiEndpoint}
-        
-        利用方法:
-        1. HTTPメソッド: POST
-        2. ヘッダー:
-           - Authorization: Bearer <your_token>
-           - Content-Type: application/json
-        3. リクエストボディ:
-           {
-             "fileName": "<ファイルパス>"
-           }
-        4. レスポンス:
-           {
-             "summary": "<要約テキスト>",
-             "originalFileName": "<元のファイル名>",
-             "summarizedLength": <要約の長さ>
-           }
-              `);
-
-      setShowApiInfoModal(true);
+      setApiCreatedInfo(
+        `APIエンドポイント: ${apiEndpoint}\n\n${response.message || ""}`
+      );
+      setShowApiCreatedDialog(true);
     } catch (error) {
       console.error("API creation failed:", error);
       setApiResponse("API creation failed. See console for details.");
@@ -227,7 +188,7 @@ const WorkflowEditor: React.FC = () => {
         Create API
       </button>
       {showApiNameModal && (
-        <div className={styles.modal}>
+        <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <h2>APIエンドポイント名を入力</h2>
             <input
@@ -243,12 +204,15 @@ const WorkflowEditor: React.FC = () => {
           </div>
         </div>
       )}
-      {showApiInfoModal && (
-        <div className={styles.modal}>
+
+      {showApiCreatedDialog && (
+        <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <h2>API作成完了</h2>
-            <pre>{apiInfo}</pre>
-            <button onClick={() => setShowApiInfoModal(false)}>閉じる</button>
+            <pre>{apiCreatedInfo}</pre>
+            <button onClick={() => setShowApiCreatedDialog(false)}>
+              閉じる
+            </button>
           </div>
         </div>
       )}

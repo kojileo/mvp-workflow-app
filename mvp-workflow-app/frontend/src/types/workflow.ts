@@ -21,7 +21,8 @@ export type NodeType =
   | "httpRequest"
   | "template"
   | "database"
-  | "email";
+  | "email"
+  | "end";
 
 export interface NodeData {
   label: string;
@@ -48,12 +49,12 @@ export interface Workflow {
   apiRequestBody: Array<Record<string, string>>;
   apiResponseHeaders: Header[];
   apiResponseBody: Array<Record<string, string>>;
-  flow: Array<{
+  flow: {
     node: {
       nodeName: string;
       nodeType: string;
-      nodeParameter: Array<Record<string, any>>;
+      nodeParameter: Record<string, any>[]; // 配列に変更
       entryPoint: boolean;
     };
-  }>;
+  }[];
 }
