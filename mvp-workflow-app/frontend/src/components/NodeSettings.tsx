@@ -76,58 +76,6 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
           <div>
             <h3 className={styles.title}>スタートノード</h3>
             {renderCommonFields()}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                APIの説明:
-                <textarea
-                  value={getJsonString(node.params.description)}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
-                  placeholder="APIの説明を入力してください"
-                  className={styles.textarea}
-                />
-              </label>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                リクエストパラメータ:
-                <textarea
-                  value={getJsonString(node.params.requestParameters)}
-                  onChange={(e) =>
-                    handleInputChange("requestParameters", e.target.value)
-                  }
-                  placeholder="リクエストパラメータをJSON形式で入力してください"
-                  className={styles.textarea}
-                />
-              </label>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                リクエストヘッダー:
-                <textarea
-                  value={getJsonString(node.params.requestHeaders)}
-                  onChange={(e) =>
-                    handleInputChange("requestHeaders", e.target.value)
-                  }
-                  placeholder="リクエストヘッダーをJSON形式で入力してください"
-                  className={styles.textarea}
-                />
-              </label>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>
-                リクエストボディ:
-                <textarea
-                  value={getJsonString(node.params.requestBody)}
-                  onChange={(e) =>
-                    handleInputChange("requestBody", e.target.value)
-                  }
-                  placeholder="リクエストボディをJSON形式で入力してください"
-                  className={styles.textarea}
-                />
-              </label>
-            </div>
           </div>
         );
       case "llm":

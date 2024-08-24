@@ -1,55 +1,142 @@
 .workflowEditor {
   display: flex;
   height: 100vh;
-  width: 100vw;
-}
-
-.flowContainer {
-  flex-grow: 1;
-  height: 100%;
-  background-color: #1a1a2e; /* より暗い青みがかった背景色 */
-}
-
-.createApiButton {
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: var(--highlight-blue);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.3s ease;
-}
-
-.createApiButton:hover {
-  background-color: #0080a0;
-  transform: translateY(-2px);
-}
-
-.apiResponse {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 8px;
-  color: white;
-  max-width: 300px;
+  background-color: #f5f5f5;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  width: 200px;
-  padding: 10px;
+  width: 250px;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebarTitle {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.apiInfoButton,
+.addNodeButton,
+.createApiButton {
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.apiInfoButton {
+  background-color: #4caf50;
+  color: white;
+}
+
+.apiInfoButton:hover {
+  background-color: #45a049;
+}
+
+.addNodeButton {
   background-color: #f0f0f0;
+  color: #333;
+}
+
+.addNodeButton:hover {
+  background-color: #e0e0e0;
+}
+
+.createApiButton {
+  background-color: #2196f3;
+  color: white;
+  margin-top: auto;
+}
+
+.createApiButton:hover {
+  background-color: #1976d2;
+}
+
+.buttonIcon {
+  margin-right: 10px;
+}
+
+.nodeButtonsContainer {
+  margin-bottom: 20px;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+}
+
+.flowContainer {
+  flex-grow: 1;
+  padding: 20px;
+}
+
+.nodeSettingsContainer {
+  width: 300px;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.createApiButton {
+  width: 100%;
+  padding: 10px;
+  margin-top: 20px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.createApiButton:hover {
+  background-color: #1976d2;
+}
+
+.flowContainer {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.apiInfoButton {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.apiInfoButton:hover {
+  background-color: #45a049;
 }
 
 .addNodeButton {
   margin-bottom: 10px;
+}
+
+.createApiButton {
+  margin-top: auto;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.createApiButton:hover {
+  background-color: #45a049;
 }
 
 .modalOverlay {
@@ -67,44 +154,88 @@
 
 .modalContent {
   background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   width: 90%;
-}
-
-.modalContent h2 {
-  margin-top: 0;
-}
-
-.modalContent input,
-.modalContent button {
-  margin-top: 10px;
-}
-
-.modalContent pre {
-  max-height: 200px;
+  max-height: 90vh;
   overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
 }
 
-.createApiButton {
-  margin-top: auto;
+.modalTitle {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  width: 100%;
   padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.formGroup textarea {
+  min-height: 100px;
+  font-family: monospace;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.saveButton,
+.cancelButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.saveButton {
   background-color: #4caf50;
   color: white;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
+  margin-right: 10px;
 }
 
-.createApiButton:hover {
+.saveButton:hover {
   background-color: #45a049;
 }
 
-.flowContainer {
-  flex-grow: 1;
-  height: 100%;
+.cancelButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancelButton:hover {
+  background-color: #d32f2f;
 }
