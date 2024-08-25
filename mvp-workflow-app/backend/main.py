@@ -28,37 +28,31 @@ class Parameter(BaseModel):
 
 class Header(BaseModel):
     name: str
-    type: str
-    description: str
-    required: Optional[bool] = None  # requiredフィールドをオプションに変更
-    default: Optional[str] = None
-    value: Optional[str] = None
+    value: str
 
-class Node(BaseModel):
+class BodyItem(BaseModel):
+    name: str
+    value: Union[str, int]
+
+class NodeParameter(BaseModel):
     nodeName: str
     nodeType: str
-    nodeParameter: List[dict]
-    entryPoint: Union[bool, str]
+    nodeParameter: dict
+    entryPoint: bool
 
-class Edge(BaseModel):
-    edgeType: str
-    edgeFrom: str
-    edgeTo: Union[str, List[str]]
-
-class FlowItem(BaseModel):
-    node: Optional[Node] = None
-    edge: Optional[Edge] = None
-
-class CreateApiRequest(BaseModel):
+class Workflow(BaseModel):
     apiEndPoint: str
     description: str
     apiType: str
-    apiRequestParameters: List[Parameter]
-    apiRequestHeaders: List[Header]
-    apiRequestBody: List[dict]
-    apiResponseHeaders: List[Header]
-    apiResponseBody: List[dict]
-    flow: List[FlowItem]
+    apiRequestParameters: List[Parameter] = []
+    apiRequestHeaders: List[Header] = []
+    apiRequestBody: List[BodyItem] = []
+    apiResponseHeaders: List[Header] = []
+    apiResponseBody: List[BodyItem] = []
+    flow: List[dict]
+
+class CreateApiRequest(BaseModel):
+    workflow: Workflow
 
     class Config:
         extra = 'allow'  # 未知のフィールドを許可
@@ -67,10 +61,14 @@ class CreateApiRequest(BaseModel):
 async def create_api(request: CreateApiRequest):
     try:
         logger.debug(f"Received request: {json.dumps(request.dict(), indent=2)}")
-        # ここでリクエストを処理
+        workflow = request.workflow
+        
+        # ワークフローの処理をここに実装
+        # 例: ワークフローの各ステップを実行
+        
         return {
             "message": "API created successfully",
-            "apiEndPoint": request.apiEndPoint
+            "apiEndPoint": workflow.apiEndPoint
         }
     except ValidationError as e:
         logger.error(f"Validation error: {e.json()}")

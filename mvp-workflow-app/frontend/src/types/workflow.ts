@@ -53,7 +53,7 @@ export interface Workflow {
     node: {
       nodeName: string;
       nodeType: string;
-      nodeParameter: Record<string, any>[]; // 配列に変更
+      nodeParameter: Record<string, any>; // 配列から単一のオブジェクトに変更
       entryPoint: boolean;
     };
   }[];

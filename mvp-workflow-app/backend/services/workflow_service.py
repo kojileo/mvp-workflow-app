@@ -1,4 +1,5 @@
-from app.models.workflow import Workflow
+from ..models.workflow import Workflow
+from ..utils.workflow_executor import WorkflowExecutor
 from typing import List, Optional
 import uuid
 
@@ -9,6 +10,10 @@ class WorkflowService:
     async def create_workflow(self, workflow: Workflow) -> Workflow:
         workflow_id = str(uuid.uuid4())
         self.workflows[workflow_id] = workflow
+        
+        # ワークフローを実行
+        await WorkflowExecutor.execute_workflow(workflow)
+        
         return workflow
 
     async def get_workflow(self, workflow_id: str) -> Optional[Workflow]:

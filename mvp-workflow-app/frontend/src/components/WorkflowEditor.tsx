@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import ReactFlow, {
   Node,
   Edge,
@@ -18,24 +18,15 @@ import NodeSettings from "./NodeSettings";
 import { Workflow } from "../types/workflow";
 import styles from "../styles/WorkflowEditor.module.css";
 import { FaTimes } from "react-icons/fa";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 
-const nodeTypes: NodeType[] = [
-  "start",
-  "llm",
-  "codeExecution",
-  "httpRequest",
-  "template",
-  "database",
-  "email",
-  "end",
-];
+const nodeTypes: NodeType[] = ["start", "llm", "end"];
 
 const WorkflowEditor: React.FC = () => {
   const [nodes, setNodes] = useState<WorkflowNode[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
-  const [apiResponse, setApiResponse] = useState<string | null>(null);
-  const [showApiNameModal, setShowApiNameModal] = useState<boolean>(false);
   const [showApiInfoModal, setShowApiInfoModal] = useState<boolean>(false);
   const [apiInfo, setApiInfo] = useState({
     apiEndpoint: "",
@@ -45,10 +36,9 @@ const WorkflowEditor: React.FC = () => {
     requestHeaders: [],
     requestBody: [],
   });
-  const [showApiCreatedDialog, setShowApiCreatedDialog] =
-    useState<boolean>(false);
-  const [apiCreatedInfo, setApiCreatedInfo] = useState<string>("");
-  const [apiEndpoint, setApiEndpoint] = useState<string>("");
+  const [isValidWorkflow, setIsValidWorkflow] = useState<boolean>(false);
+  const [apiCreated, setApiCreated] = useState<boolean>(false);
+  const [createdApiInfo, setCreatedApiInfo] = useState<string>("");
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -63,18 +53,19 @@ const WorkflowEditor: React.FC = () => {
   );
 
   const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    []
   );
 
   const addNode = (type: NodeType) => {
     const newNode: WorkflowNode = {
-      id: (nodes.length + 1).toString(),
+      id: uuidv4(),
       type: "default",
       position: { x: 100, y: 100 },
       data: { label: type, type, params: {} },
     };
     setNodes((nds) => [...nds, newNode]);
+    validateWorkflow([...nodes, newNode], edges);
   };
 
   const handleNodeClick = (event: React.MouseEvent, node: Node) => {
@@ -94,151 +85,118 @@ const WorkflowEditor: React.FC = () => {
     setSelectedNode(null);
   };
 
-  const handleCreateApi = async () => {
-    try {
-      const workflow: Workflow = {
-        apiEndPoint: apiInfo.apiEndpoint,
-        description: apiInfo.description,
-        apiType: apiInfo.apiType,
-        apiRequestParameters: apiInfo.requestParameters,
-        apiRequestHeaders: apiInfo.requestHeaders,
-        apiRequestBody: apiInfo.requestBody,
-        apiResponseHeaders: [],
-        apiResponseBody: [],
-        flow: nodes.map((node) => ({
-          node: {
-            nodeName: node.data.label,
-            nodeType: node.data.type,
-            nodeParameter: [node.data.params],
-            entryPoint: node.id === "1",
-          },
-        })),
-      };
-
-      nodes.forEach((node) => {
-        if (node.data.type === "end") {
-          workflow.apiResponseHeaders = node.data.params.responseHeaders || [];
-          workflow.apiResponseBody = node.data.params.responseBody || [];
-        }
-      });
-
-      const response = await createApi(workflow);
-      setApiResponse(JSON.stringify(response, null, 2));
-      setApiCreatedInfo(
-        `APIエンドポイント: ${apiInfo.apiEndpoint}\n\n${response.message || ""}`
-      );
-      setShowApiCreatedDialog(true);
-    } catch (error) {
-      console.error("API creation failed:", error);
-      setApiResponse("API creation failed. See console for details.");
-    }
-  };
-
-  const handleCreateApiClick = () => {
-    setShowApiNameModal(true);
-  };
-
-  const handleApiNameSubmit = async () => {
-    if (!apiEndpoint.trim()) {
-      alert("APIエンドポイント名を入力してください。");
-      return;
-    }
-    setApiInfo((prev) => ({ ...prev, apiEndpoint: apiEndpoint }));
-    await handleCreateApi();
-    setShowApiNameModal(false);
-  };
-
   const handleApiInfoClick = () => {
     setShowApiInfoModal(true);
   };
 
   const handleApiInfoSubmit = () => {
     setShowApiInfoModal(false);
+    validateWorkflow(nodes, edges);
   };
 
   const handleApiInfoChange = (key: string, value: any) => {
     setApiInfo((prev) => ({ ...prev, [key]: value }));
   };
 
+  const validateWorkflow = (
+    currentNodes: WorkflowNode[],
+    currentEdges: Edge[]
+  ) => {
+    const hasStart = currentNodes.some((node) => node.data.type === "start");
+    const hasEnd = currentNodes.some((node) => node.data.type === "end");
+    const hasLLM = currentNodes.some((node) => node.data.type === "llm");
+    const isConnected = currentEdges.length >= 2;
+    const hasApiInfo = apiInfo.apiEndpoint && apiInfo.description;
+
+    setIsValidWorkflow(
+      !!(hasStart && hasEnd && hasLLM && isConnected && hasApiInfo)
+    );
+  };
+
+  const handleCreateApi = async () => {
+    if (!isValidWorkflow) {
+      toast.error("有効なワークフローを作成してください。");
+      return;
+    }
+
+    try {
+      const workflowData = {
+        apiEndPoint: apiInfo.apiEndpoint,
+        description: apiInfo.description,
+        apiType: apiInfo.apiType,
+        apiRequestParameters: [],
+        apiRequestHeaders: [],
+        apiRequestBody: [],
+        apiResponseHeaders: [],
+        apiResponseBody: [],
+        flow: nodes.map((node) => ({
+          node: {
+            nodeName: node.data.label,
+            nodeType: node.data.type,
+            nodeParameter: node.data.params,
+            entryPoint: node.id === "1",
+          },
+        })),
+      };
+
+      const response = await createApi({ workflow: workflowData });
+      toast.success("APIが正常に作成されました。");
+      saveCreatedApi(response);
+      setApiCreated(true);
+      setCreatedApiInfo(
+        `APIエンドポイント: ${response.apiEndPoint}\n説明: ${apiInfo.description}`
+      );
+    } catch (error) {
+      console.error("API creation failed:", error);
+      toast.error("API作成に失敗しました。");
+    }
+  };
+
+  const saveCreatedApi = (apiData: any) => {
+    const savedApis = JSON.parse(localStorage.getItem("createdApis") || "[]");
+    savedApis.push(apiData);
+    localStorage.setItem("createdApis", JSON.stringify(savedApis));
+  };
+
   return (
     <div className={styles.workflowEditor}>
       <div className={styles.sidebar}>
-        <h2 className={styles.sidebarTitle}>ワークフロー編集</h2>
-        <button onClick={handleApiInfoClick} className={styles.apiInfoButton}>
-          <i className="fas fa-info-circle"></i> API基本情報を設定
-        </button>
-        <div className={styles.nodeButtonsContainer}>
-          {nodeTypes.map((type) => (
-            <button
-              key={type}
-              onClick={() => addNode(type)}
-              className={styles.addNodeButton}
-            >
-              <i className={`fas fa-plus-circle ${styles.buttonIcon}`}></i>{" "}
-              {type}ノード追加
-            </button>
-          ))}
-        </div>
+        <button onClick={handleApiInfoClick}>API基本情報設定</button>
+        <button onClick={() => addNode("start")}>Startノード追加</button>
+        <button onClick={() => addNode("llm")}>LLMノード追加</button>
+        <button onClick={() => addNode("end")}>Endノード追加</button>
         <button
-          onClick={handleCreateApiClick}
+          onClick={handleCreateApi}
+          disabled={!isValidWorkflow}
           className={styles.createApiButton}
         >
-          <i className="fas fa-code"></i> API作成
+          API作成
         </button>
       </div>
-      <div className={styles.flowContainer}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={handleNodeClick}
-        >
-          <Controls />
-          <Background />
-        </ReactFlow>
-      </div>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={handleNodeClick}
+      >
+        <Controls />
+        <Background />
+      </ReactFlow>
       {selectedNode && (
-        <div className={styles.nodeSettingsContainer}>
-          <NodeSettings
-            node={selectedNode.data}
-            onUpdate={handleNodeUpdate}
-            onDelete={() => handleNodeDelete(selectedNode.data.label)}
-          />
-        </div>
-      )}
-      {showApiNameModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <h2>APIエンドポイント名を入力</h2>
-            <input
-              type="text"
-              value={apiEndpoint}
-              onChange={(e) => setApiEndpoint(e.target.value)}
-              placeholder="APIエンドポイント名"
-            />
-            <button onClick={handleApiNameSubmit}>作成</button>
-            <button onClick={() => setShowApiNameModal(false)}>
-              キャンセル
-            </button>
-          </div>
-        </div>
+        <NodeSettings
+          node={selectedNode.data}
+          onUpdate={handleNodeUpdate}
+          onDelete={handleNodeDelete}
+        />
       )}
       {showApiInfoModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            <h2 className={styles.modalTitle}>
-              API基本情報
-              <button
-                onClick={() => setShowApiInfoModal(false)}
-                className={styles.closeButton}
-              >
-                <FaTimes />
-              </button>
-            </h2>
+            <h2>API基本情報設定</h2>
             <div className={styles.formGroup}>
-              <label htmlFor="apiEndpoint">APIエンドポイント名</label>
+              <label htmlFor="apiEndpoint">APIエンドポイント</label>
               <input
                 id="apiEndpoint"
                 type="text"
@@ -246,7 +204,7 @@ const WorkflowEditor: React.FC = () => {
                 onChange={(e) =>
                   handleApiInfoChange("apiEndpoint", e.target.value)
                 }
-                placeholder="例: /api/v1/users"
+                placeholder="例: /api/v1/summarize"
               />
             </div>
             <div className={styles.formGroup}>
@@ -273,45 +231,6 @@ const WorkflowEditor: React.FC = () => {
                 <option value="DELETE">DELETE</option>
               </select>
             </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="requestParameters">リクエストパラメータ</label>
-              <textarea
-                id="requestParameters"
-                value={JSON.stringify(apiInfo.requestParameters, null, 2)}
-                onChange={(e) =>
-                  handleApiInfoChange(
-                    "requestParameters",
-                    JSON.parse(e.target.value)
-                  )
-                }
-                placeholder='[{"name": "userId", "type": "string"}]'
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="requestHeaders">リクエストヘッダー</label>
-              <textarea
-                id="requestHeaders"
-                value={JSON.stringify(apiInfo.requestHeaders, null, 2)}
-                onChange={(e) =>
-                  handleApiInfoChange(
-                    "requestHeaders",
-                    JSON.parse(e.target.value)
-                  )
-                }
-                placeholder='[{"name": "Authorization", "value": "Bearer token"}]'
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="requestBody">リクエストボディ</label>
-              <textarea
-                id="requestBody"
-                value={JSON.stringify(apiInfo.requestBody, null, 2)}
-                onChange={(e) =>
-                  handleApiInfoChange("requestBody", JSON.parse(e.target.value))
-                }
-                placeholder='{ "key": "value" }'
-              />
-            </div>
             <div className={styles.modalActions}>
               <button
                 onClick={handleApiInfoSubmit}
@@ -329,14 +248,12 @@ const WorkflowEditor: React.FC = () => {
           </div>
         </div>
       )}
-      {showApiCreatedDialog && (
-        <div className={styles.modalOverlay}>
+      {apiCreated && (
+        <div className={styles.apiCreatedModal}>
           <div className={styles.modalContent}>
             <h2>API作成完了</h2>
-            <pre>{apiCreatedInfo}</pre>
-            <button onClick={() => setShowApiCreatedDialog(false)}>
-              閉じる
-            </button>
+            <pre>{createdApiInfo}</pre>
+            <button onClick={() => setApiCreated(false)}>閉じる</button>
           </div>
         </div>
       )}
