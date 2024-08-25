@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import ReactFlow, {
   Node,
   Edge,
@@ -15,9 +15,8 @@ import "reactflow/dist/style.css";
 import { createApi } from "../services/api";
 import { NodeType, WorkflowNode, NodeData } from "../types/workflow";
 import NodeSettings from "./NodeSettings";
-import { Workflow } from "../types/workflow";
 import styles from "../styles/WorkflowEditor.module.css";
-import { FaTimes } from "react-icons/fa";
+import { FaPlus, FaInfoCircle, FaCode } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 
@@ -161,35 +160,53 @@ const WorkflowEditor: React.FC = () => {
   return (
     <div className={styles.workflowEditor}>
       <div className={styles.sidebar}>
-        <button onClick={handleApiInfoClick}>API基本情報設定</button>
-        <button onClick={() => addNode("start")}>Startノード追加</button>
-        <button onClick={() => addNode("llm")}>LLMノード追加</button>
-        <button onClick={() => addNode("end")}>Endノード追加</button>
+        <h2 className={styles.sidebarTitle}>ワークフローエディタ</h2>
+        <button onClick={handleApiInfoClick} className={styles.apiInfoButton}>
+          <FaInfoCircle className={styles.buttonIcon} />
+          API基本情報設定
+        </button>
+        <div className={styles.nodeButtonsContainer}>
+          {nodeTypes.map((type) => (
+            <button
+              key={type}
+              onClick={() => addNode(type)}
+              className={styles.addNodeButton}
+            >
+              <FaPlus className={styles.buttonIcon} />
+              {type.charAt(0).toUpperCase() + type.slice(1)}ノード追加
+            </button>
+          ))}
+        </div>
         <button
           onClick={handleCreateApi}
           disabled={!isValidWorkflow}
           className={styles.createApiButton}
         >
+          <FaCode className={styles.buttonIcon} />
           API作成
         </button>
       </div>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={handleNodeClick}
-      >
-        <Controls />
-        <Background />
-      </ReactFlow>
+      <div className={styles.flowContainer}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={handleNodeClick}
+        >
+          <Controls />
+          <Background />
+        </ReactFlow>
+      </div>
       {selectedNode && (
-        <NodeSettings
-          node={selectedNode.data}
-          onUpdate={handleNodeUpdate}
-          onDelete={handleNodeDelete}
-        />
+        <div className={styles.nodeSettingsContainer}>
+          <NodeSettings
+            node={selectedNode.data}
+            onUpdate={handleNodeUpdate}
+            onDelete={handleNodeDelete}
+          />
+        </div>
       )}
       {showApiInfoModal && (
         <div className={styles.modalOverlay}>
@@ -250,7 +267,7 @@ const WorkflowEditor: React.FC = () => {
       )}
       {apiCreated && (
         <div className={styles.apiCreatedModal}>
-          <div className={styles.modalContent}>
+          <div className={styles.apiCreatedContent}>
             <h2>API作成完了</h2>
             <pre>{createdApiInfo}</pre>
             <button onClick={() => setApiCreated(false)}>閉じる</button>

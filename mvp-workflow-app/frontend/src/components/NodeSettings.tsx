@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NodeData } from "../types/workflow";
 import styles from "../styles/NodeSettings.module.css";
+import { FaTrash, FaCog } from "react-icons/fa";
 
 interface NodeSettingsProps {
   node: NodeData;
@@ -28,7 +29,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
   const renderCommonFields = () => (
     <div className={styles.formGroup}>
       <label className={styles.label}>
-        Node Name:
+        ノード名:
         <input
           type="text"
           value={localNode.label}
@@ -41,6 +42,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
         />
       </label>
       <button onClick={handleDelete} className={styles.deleteButton}>
+        <FaTrash className={styles.buttonIcon} />
         ノードを削除
       </button>
     </div>
@@ -58,17 +60,21 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
       case "start":
       case "end":
         return (
-          <div>
+          <div className={styles.nodeSettings}>
             <h3 className={styles.title}>
-              {localNode.type === "start" ? "スタート" : "エンド"}ノード
+              <FaCog className={styles.titleIcon} />
+              {localNode.type === "start" ? "スタート" : "エンド"}ノード設定
             </h3>
             {renderCommonFields()}
           </div>
         );
       case "llm":
         return (
-          <div>
-            <h3 className={styles.title}>LLMノード</h3>
+          <div className={styles.nodeSettings}>
+            <h3 className={styles.title}>
+              <FaCog className={styles.titleIcon} />
+              LLMノード設定
+            </h3>
             {renderCommonFields()}
             <div className={styles.formGroup}>
               <label className={styles.label}>
@@ -239,7 +245,7 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
     }
   };
 
-  return <div className="node-settings">{renderFields()}</div>;
+  return renderFields();
 };
 
 export default NodeSettings;
