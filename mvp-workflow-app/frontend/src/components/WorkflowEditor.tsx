@@ -123,9 +123,9 @@ const WorkflowEditor: React.FC = () => {
         apiEndPoint: apiInfo.apiEndpoint,
         description: apiInfo.description,
         apiType: apiInfo.apiType,
-        apiRequestParameters: [],
-        apiRequestHeaders: [],
-        apiRequestBody: [],
+        apiRequestParameters: apiInfo.requestParameters,
+        apiRequestHeaders: apiInfo.requestHeaders,
+        apiRequestBody: apiInfo.requestBody,
         apiResponseHeaders: [],
         apiResponseBody: [],
         flow: nodes.map((node) => ({
@@ -133,7 +133,7 @@ const WorkflowEditor: React.FC = () => {
             nodeName: node.data.label,
             nodeType: node.data.type,
             nodeParameter: node.data.params,
-            entryPoint: node.id === "1",
+            entryPoint: node.data.type === "start",
           },
         })),
       };
