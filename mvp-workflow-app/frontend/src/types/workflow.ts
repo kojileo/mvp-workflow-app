@@ -7,11 +7,12 @@ export interface WorkflowNodeData {
 
 export interface Header {
   name: string;
+
+  value: string;
+
   type: string;
-  description: string;
-  required?: boolean; // requiredフィールドをオプションに変更
-  default?: string;
-  value?: string;
+
+  description?: string; // 修正
 }
 
 export type NodeType =
@@ -26,6 +27,7 @@ export type NodeType =
 
 export interface NodeData {
   label: string;
+
   type: NodeType;
   params: Record<string, any>;
 }
@@ -36,25 +38,44 @@ export type WorkflowEdge = Edge;
 
 export interface Workflow {
   apiEndPoint: string;
+
   description: string;
   apiType: string;
+
   apiRequestParameters: Array<{
     name: string;
+
     type: string;
     description: string;
+
     required: boolean;
+
     default?: number | string;
   }>;
+
   apiRequestHeaders: Header[];
-  apiRequestBody: Array<Record<string, string>>;
+
+  apiRequestBody: BodyItem[]; // 修正
+
   apiResponseHeaders: Header[];
-  apiResponseBody: Array<Record<string, string>>;
+
+  apiResponseBody: BodyItem[]; // 修正
+
   flow: {
     node: {
       nodeName: string;
+
       nodeType: string;
+
       nodeParameter: Record<string, any>; // 配列から単一のオブジェクトに変更
+
       entryPoint: boolean;
     };
   }[];
+}
+
+export interface BodyItem {
+  name: string;
+
+  value: string | number;
 }

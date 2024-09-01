@@ -14,9 +14,10 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { createApi } from "../services/api";
 import { NodeType, WorkflowNode, NodeData } from "../types/workflow";
+import { Parameter, BodyItem, API } from "../types/api"; // 追加
 import NodeSettings from "./NodeSettings";
 import styles from "../styles/WorkflowEditor.module.css";
-import { FaPlus, FaInfoCircle, FaCode } from "react-icons/fa";
+import { FaPlus, FaInfoCircle, FaCode, FaPlay } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 
@@ -119,15 +120,62 @@ const WorkflowEditor: React.FC = () => {
     }
 
     try {
-      const workflowData = {
+      const llmNode = nodes.find((node) => node.data.type === "llm");
+      const apiRequestParameters: Parameter[] = [];
+      const apiResponseBody: BodyItem[] = [];
+
+      if (llmNode && llmNode.data.params.aiFunction === "summarize") {
+        if (llmNode.data.params.fileInput) {
+          apiRequestParameters.push({
+            name: "file",
+            type: "file",
+            description: "アップロードするファイル",
+            required: true,
+          });
+        }
+        if (llmNode.data.params.maxLength) {
+          apiRequestParameters.push({
+            name: "max_length",
+            type: "number",
+            description: "要約の最大文字数",
+            required: false,
+            default: parseInt(llmNode.data.params.maxLength),
+          });
+        }
+        if (llmNode.data.params.language) {
+          apiRequestParameters.push({
+            name: "language",
+            type: "string",
+            description: "要約の言語",
+            required: false,
+            default: llmNode.data.params.language,
+          });
+        }
+
+        apiResponseBody.push(
+          { name: "summary", value: "要約されたテキスト" },
+          { name: "original_language", value: "検出された元の言語" },
+          { name: "character_count", value: 0 },
+          { name: "processing_time", value: 0 }
+        );
+      }
+
+      const workflowData: API = {
         apiEndPoint: apiInfo.apiEndpoint,
         description: apiInfo.description,
         apiType: apiInfo.apiType,
-        apiRequestParameters: apiInfo.requestParameters,
+        apiRequestParameters,
         apiRequestHeaders: apiInfo.requestHeaders,
         apiRequestBody: apiInfo.requestBody,
-        apiResponseHeaders: [],
-        apiResponseBody: [],
+        apiResponseHeaders: [
+          {
+            name: "Content-Type",
+            value: "application/json",
+            type: "string",
+            description: "レスポンスのContent-Type" || "", // デフォルト値を設定
+          },
+        ],
+        apiResponseBody,
         flow: nodes.map((node) => ({
           node: {
             nodeName: node.data.label,
@@ -143,7 +191,17 @@ const WorkflowEditor: React.FC = () => {
       saveCreatedApi(response);
       setApiCreated(true);
       setCreatedApiInfo(
-        `APIエンドポイント: ${response.apiEndPoint}\n説明: ${apiInfo.description}`
+        JSON.stringify(
+          {
+            url: `http://localhost:8000${response.apiEndPoint}`,
+            method: apiInfo.apiType,
+            headers: apiInfo.requestHeaders,
+            body: apiInfo.requestBody,
+            description: apiInfo.description,
+          },
+          null,
+          2
+        )
       );
     } catch (error) {
       console.error("API creation failed:", error);
@@ -269,7 +327,16 @@ const WorkflowEditor: React.FC = () => {
         <div className={styles.apiCreatedModal}>
           <div className={styles.apiCreatedContent}>
             <h2>API作成完了</h2>
+            <p>以下の情報をPostmanで使用してAPIをテストできます：</p>
             <pre>{createdApiInfo}</pre>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(createdApiInfo);
+                toast.success("APIの情報をクリップボードにコピーしました。");
+              }}
+            >
+              情報をコピー
+            </button>
             <button onClick={() => setApiCreated(false)}>閉じる</button>
           </div>
         </div>

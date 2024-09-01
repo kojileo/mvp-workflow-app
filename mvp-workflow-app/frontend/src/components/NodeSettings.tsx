@@ -81,158 +81,60 @@ const NodeSettings: React.FC<NodeSettingsProps> = ({
                 AI機能:
                 <select
                   value={localNode.params.aiFunction || ""}
-                  onChange={(e) => {
-                    const newFunction = e.target.value;
-                    let newParams: {
-                      aiFunction: string;
-                      inputType: string;
-                      inputParam: string;
-                      outputParam: string;
-                      targetLanguage?: string;
-                      customPrompt?: string;
-                    } = {
-                      aiFunction: newFunction,
-                      inputType: "text",
-                      inputParam: "",
-                      outputParam: "",
-                    };
-
-                    switch (newFunction) {
-                      case "summarize":
-                        newParams = {
-                          ...newParams,
-                          inputParam: "text_to_summarize",
-                          outputParam: "summary",
-                        };
-                        break;
-                      case "translate":
-                        newParams = {
-                          ...newParams,
-                          inputParam: "text_to_translate",
-                          outputParam: "translated_text",
-                          targetLanguage: "en",
-                        };
-                        break;
-                      case "analyze":
-                        newParams = {
-                          ...newParams,
-                          inputParam: "text_to_analyze",
-                          outputParam: "analysis_result",
-                        };
-                        break;
-                      case "generate":
-                        newParams = {
-                          ...newParams,
-                          inputParam: "generation_prompt",
-                          outputParam: "generated_text",
-                        };
-                        break;
-                      case "custom":
-                        newParams = {
-                          ...newParams,
-                          inputParam: "custom_input",
-                          outputParam: "custom_output",
-                          customPrompt: "",
-                        };
-                        break;
-                    }
-                    const updatedNode = {
-                      ...localNode,
-                      params: { ...localNode.params, ...newParams },
-                    };
-                    setLocalNode(updatedNode);
-                    onUpdate(updatedNode);
-                  }}
+                  onChange={(e) =>
+                    handleParamChange("aiFunction", e.target.value)
+                  }
                   className={styles.input}
                 >
                   <option value="">選択してください</option>
                   <option value="summarize">要約</option>
                   <option value="translate">翻訳</option>
                   <option value="analyze">分析</option>
-                  <option value="generate">文章生成</option>
+                  <option value="generate">生成</option>
                   <option value="custom">カスタム</option>
                 </select>
               </label>
             </div>
-            {localNode.params.aiFunction && (
+            {localNode.params.aiFunction === "summarize" && (
               <>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    入力形式:
-                    <select
-                      value={localNode.params.inputType || "text"}
-                      onChange={(e) =>
-                        handleParamChange("inputType", e.target.value)
-                      }
-                      className={styles.input}
-                    >
-                      <option value="text">テキスト</option>
-                      <option value="file">ファイル</option>
-                      <option value="url">URL</option>
-                    </select>
-                  </label>
-                </div>
-                {localNode.params.aiFunction === "translate" && (
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      翻訳先言語:
-                      <select
-                        value={localNode.params.targetLanguage || "en"}
-                        onChange={(e) =>
-                          handleParamChange("targetLanguage", e.target.value)
-                        }
-                        className={styles.input}
-                      >
-                        <option value="en">英語</option>
-                        <option value="ja">日本語</option>
-                        <option value="zh">中国語</option>
-                        <option value="es">スペイン語</option>
-                        <option value="fr">フランス語</option>
-                      </select>
-                    </label>
-                  </div>
-                )}
-                {localNode.params.aiFunction === "custom" && (
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      カスタムプロンプト:
-                      <textarea
-                        value={localNode.params.customPrompt || ""}
-                        onChange={(e) =>
-                          handleParamChange("customPrompt", e.target.value)
-                        }
-                        className={`${styles.input} ${styles.textarea}`}
-                        rows={4}
-                        placeholder="AIに実行してほしいタスクを記述します"
-                      />
-                    </label>
-                  </div>
-                )}
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    入力パラメータ名:
+                    最大文字数:
                     <input
-                      type="text"
-                      value={localNode.params.inputParam || ""}
+                      type="number"
+                      value={localNode.params.maxLength || ""}
                       onChange={(e) =>
-                        handleParamChange("inputParam", e.target.value)
+                        handleParamChange("maxLength", e.target.value)
                       }
                       className={styles.input}
-                      readOnly={localNode.params.aiFunction !== "custom"}
+                      placeholder="例: 500"
                     />
                   </label>
                 </div>
                 <div className={styles.formGroup}>
                   <label className={styles.label}>
-                    出力パラメータ名:
+                    言語:
                     <input
                       type="text"
-                      value={localNode.params.outputParam || ""}
+                      value={localNode.params.language || ""}
                       onChange={(e) =>
-                        handleParamChange("outputParam", e.target.value)
+                        handleParamChange("language", e.target.value)
                       }
                       className={styles.input}
-                      readOnly={localNode.params.aiFunction !== "custom"}
+                      placeholder="例: auto"
+                    />
+                  </label>
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>
+                    ファイル入力:
+                    <input
+                      type="checkbox"
+                      checked={localNode.params.fileInput || false}
+                      onChange={(e) =>
+                        handleParamChange("fileInput", e.target.checked)
+                      }
+                      className={styles.checkbox}
                     />
                   </label>
                 </div>

@@ -1,16 +1,15 @@
-import { Workflow } from "../models/workflow";
+import { API } from "../models/api";
 
 export class WorkflowExecutor {
-  static async executeWorkflow(workflow: Workflow): Promise<void> {
-    // ワークフロー実行ロジックをここに実装
-    console.log(`Executing workflow: ${workflow.name}`);
-    for (const step of workflow.steps) {
+  static async executeWorkflow(api: API): Promise<void> {
+    console.log(`Executing workflow for API: ${api.apiEndPoint}`);
+    for (const step of api.flow) {
       await this.executeStep(step);
     }
   }
 
   private static async executeStep(step: any): Promise<void> {
-    console.log(`Executing step: ${step.name}`);
+    console.log(`Executing step: ${step.node.nodeName}`);
     // ステップ実行ロジックをここに実装
     await new Promise((resolve) => setTimeout(resolve, 1000)); // 仮の遅延
   }

@@ -1,42 +1,39 @@
-import { Workflow } from "../models/workflow";
-import { WorkflowExecutor } from "../utils/workflow_executor";
 import { v4 as uuidv4 } from "uuid";
+import { API } from "../models/api";
+import { WorkflowExecutor } from "../utils/workflow_executor";
 
 export class WorkflowService {
-  private workflows: { [key: string]: Workflow } = {};
+  private apis: { [key: string]: API } = {};
 
-  async createWorkflow(workflow: Workflow): Promise<Workflow> {
-    const workflowId = uuidv4();
-    this.workflows[workflowId] = workflow;
+  async createWorkflow(api: API): Promise<API> {
+    const apiId = uuidv4();
+    this.apis[apiId] = api;
 
     // ワークフローを実行
-    await WorkflowExecutor.executeWorkflow(workflow);
+    await WorkflowExecutor.executeWorkflow(api);
 
-    return workflow;
+    return api;
   }
 
-  async getWorkflow(workflowId: string): Promise<Workflow | undefined> {
-    return this.workflows[workflowId];
+  async getWorkflow(apiId: string): Promise<API | undefined> {
+    return this.apis[apiId];
   }
 
-  async listWorkflows(): Promise<Workflow[]> {
-    return Object.values(this.workflows);
+  async listWorkflows(): Promise<API[]> {
+    return Object.values(this.apis);
   }
 
-  async updateWorkflow(
-    workflowId: string,
-    workflow: Workflow
-  ): Promise<Workflow | undefined> {
-    if (workflowId in this.workflows) {
-      this.workflows[workflowId] = workflow;
-      return workflow;
+  async updateWorkflow(apiId: string, api: API): Promise<API | undefined> {
+    if (apiId in this.apis) {
+      this.apis[apiId] = api;
+      return api;
     }
     return undefined;
   }
 
-  async deleteWorkflow(workflowId: string): Promise<boolean> {
-    if (workflowId in this.workflows) {
-      delete this.workflows[workflowId];
+  async deleteWorkflow(apiId: string): Promise<boolean> {
+    if (apiId in this.apis) {
+      delete this.apis[apiId];
       return true;
     }
     return false;
