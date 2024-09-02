@@ -190,22 +190,13 @@ const WorkflowEditor: React.FC = () => {
       toast.success("APIが正常に作成されました。");
       saveCreatedApi(response);
       setApiCreated(true);
-      setCreatedApiInfo(
-        JSON.stringify(
-          {
-            url: `http://localhost:8000${response.apiEndPoint}`,
-            method: apiInfo.apiType,
-            headers: apiInfo.requestHeaders,
-            body: apiInfo.requestBody,
-            description: apiInfo.description,
-          },
-          null,
-          2
-        )
-      );
+
+      // APIの詳細情報を設定
+      const apiDetails = JSON.stringify(response.body, null, 2);
+      setCreatedApiInfo(apiDetails);
     } catch (error) {
       console.error("API creation failed:", error);
-      toast.error("API作成に失敗しました。");
+      toast.error("APIの作成に失敗しました。");
     }
   };
 
@@ -327,16 +318,7 @@ const WorkflowEditor: React.FC = () => {
         <div className={styles.apiCreatedModal}>
           <div className={styles.apiCreatedContent}>
             <h2>API作成完了</h2>
-            <p>以下の情報をPostmanで使用してAPIをテストできます：</p>
             <pre>{createdApiInfo}</pre>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(createdApiInfo);
-                toast.success("APIの情報をクリップボードにコピーしました。");
-              }}
-            >
-              情報をコピー
-            </button>
             <button onClick={() => setApiCreated(false)}>閉じる</button>
           </div>
         </div>

@@ -7,7 +7,12 @@ export const createApi = async ({
   workflow,
 }: {
   workflow: Workflow;
-}): Promise<{ message: string; apiEndPoint: string }> => {
+}): Promise<{
+  message: string;
+  apiEndPoint: string;
+  headers: any;
+  body: any;
+}> => {
   try {
     console.log("Sending workflow data:", JSON.stringify(workflow, null, 2));
     const response = await axios.post(
@@ -19,7 +24,11 @@ export const createApi = async ({
         },
       }
     );
-    return response.data;
+    return {
+      ...response.data,
+      headers: response.headers,
+      body: workflow, // 修正: response.data ではなく workflow を設定
+    };
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
       console.error(
