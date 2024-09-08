@@ -1,31 +1,42 @@
 import { API } from "../models/api";
+import { AIService } from "../services/ai_service";
 
 export class WorkflowExecutor {
-  static async executeWorkflow(api: API): Promise<void> {
-    console.log(`Executing workflow for API: ${api.apiEndPoint}`);
+  static async executeWorkflow(api: API): Promise<any> {
+    let result: any = {};
     for (const step of api.flow) {
-      await this.executeStep(step);
+      result = await this.executeStep(step.node, result);
+    }
+    return result;
+  }
+
+  private static async executeStep(node: any, input: any): Promise<any> {
+    console.log(`Executing step: ${node.nodeName}`);
+    switch (node.nodeType) {
+      case "start":
+        return { text: input.text || "Sample input text" };
+      case "llm":
+        return this.executeLLMNode(node, input);
+      case "end":
+        return input;
+      default:
+        throw new Error(`Unknown node type: ${node.nodeType}`);
     }
   }
 
-  private static async executeStep(step: any): Promise<void> {
-    console.log(`Executing step: ${step.node.nodeName}`);
-    // ステップ実行ロジックをここに実装
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // 仮の遅延
-  }
-
-  static async executeEndNode(node: any): Promise<void> {
-    // エンドノードの処理
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-
-  static async readFile(filePath: string): Promise<string> {
-    // ファイル読み込み処理を実装（仮の実装）
-    return `ファイル ${filePath} の内容`;
-  }
-
-  static async summarizeText(text: string, maxLength: number): Promise<string> {
-    // LLMを使用したテキスト要約処理を実装（仮の実装）
-    return `${text.slice(0, maxLength)}... (要約: ${text.length}文字)`;
+  private static async executeLLMNode(node: any, input: any): Promise<any> {
+    switch (node.nodeParameter.aiFunction) {
+      case "summarize":
+        const summary = await AIService.summarizeText(
+          input.text,
+          node.nodeParameter.maxLength || 100
+        );
+        return { ...input, summary };
+      // 他のAI機能も同様に実装できます
+      default:
+        throw new Error(
+          `Unknown AI function: ${node.nodeParameter.aiFunction}`
+        );
+    }
   }
 }

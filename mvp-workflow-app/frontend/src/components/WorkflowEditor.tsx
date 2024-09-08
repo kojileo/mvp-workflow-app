@@ -21,6 +21,7 @@ import { FaPlus, FaInfoCircle, FaCode, FaPlay } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import ApiPreview from "./ApiPreview";
+import ApiTester from "./ApiTester";
 
 const nodeTypes: NodeType[] = ["start", "llm", "end"];
 
@@ -39,8 +40,8 @@ const WorkflowEditor: React.FC = () => {
     requestBody: [],
   });
   const [isValidWorkflow, setIsValidWorkflow] = useState<boolean>(false);
-  const [apiCreated, setApiCreated] = useState<boolean>(false);
-  const [createdApiInfo, setCreatedApiInfo] = useState<string>("");
+  const [apiCreated, setApiCreated] = useState(false);
+  const [createdApiInfo, setCreatedApiInfo] = useState("");
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -188,13 +189,8 @@ const WorkflowEditor: React.FC = () => {
         })),
       };
 
-      const response = await createApi({ workflow: workflowData });
-      toast.success("APIが正常に作成されました。");
-      saveCreatedApi(response);
-      setApiCreated(true);
-
-      // APIの詳細情報を設定
       const apiDetails = JSON.stringify(workflowData, null, 2);
+      setApiCreated(true);
       setCreatedApiInfo(apiDetails);
       setShowApiPreview(true);
     } catch (error) {

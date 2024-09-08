@@ -2,6 +2,7 @@ import express from "express";
 import { json } from "body-parser";
 import cors from "cors";
 import { WorkflowService } from "./services/workflow_service";
+import { WorkflowExecutor } from "./utils/workflow_executor";
 import { API } from "./models/api";
 
 const app = express();
@@ -17,41 +18,6 @@ app.use(
 
 const workflowService = new WorkflowService();
 
-async function mockExecuteWorkflow(workflow: API): Promise<any> {
-  const result: any = {};
-  for (const step of workflow.flow) {
-    const node = step.node;
-    switch (node.nodeType) {
-      case "start":
-        result.input = "Sample input text";
-        break;
-      case "llm":
-        switch (node.nodeParameter.aiFunction) {
-          case "summarize":
-            result.summary = `Summarized version of: ${result.input}`;
-            break;
-          case "translate":
-            result.translatedText = `Translated to ${node.nodeParameter.targetLanguage}: ${result.input}`;
-            break;
-          case "analyze":
-            result.analysis = `Analysis of: ${result.input}`;
-            break;
-          case "generate":
-            result.generatedText = `Generated text based on: ${result.input}`;
-            break;
-          case "custom":
-            result.customOutput = `Custom processing of: ${result.input}`;
-            break;
-        }
-        break;
-      case "end":
-        // エンドノードの処理（必要に応じて）
-        break;
-    }
-  }
-  return result;
-}
-
 app.post("/createapi", async (req, res) => {
   try {
     const workflow: API = req.body.workflow;
@@ -64,7 +30,7 @@ app.post("/createapi", async (req, res) => {
     // 動的にAPIエンドポイントを作成
     app.post(createdApiEndpoint, async (req, res) => {
       try {
-        const result = await mockExecuteWorkflow(workflow);
+        const result = await WorkflowExecutor.executeWorkflow(workflow);
         res.json(result);
       } catch (error) {
         console.error(error);
@@ -75,6 +41,7 @@ app.post("/createapi", async (req, res) => {
     res.json({
       message: "API created successfully",
       apiEndPoint: createdApiEndpoint,
+      workflow: createdWorkflow,
     });
   } catch (error) {
     console.error(error);

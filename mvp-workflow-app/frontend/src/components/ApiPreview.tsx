@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "../styles/ApiPreview.module.css";
+import ApiTester from "./ApiTester";
 
 interface ApiPreviewProps {
   apiInfo: string;
@@ -8,6 +9,11 @@ interface ApiPreviewProps {
 
 const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
   const apiData = JSON.parse(apiInfo);
+  const [showApiTester, setShowApiTester] = useState(false);
+
+  const toggleApiTester = () => {
+    setShowApiTester(!showApiTester);
+  };
 
   return (
     <div className={styles.apiPreviewOverlay}>
@@ -37,6 +43,10 @@ const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
             ))}
           </ul>
         </div>
+        <button onClick={toggleApiTester} className={styles.testButton}>
+          {showApiTester ? "APIテスターを閉じる" : "APIをテスト"}
+        </button>
+        {showApiTester && <ApiTester apiEndpoint={apiData.apiEndPoint} />}
         <button onClick={onClose} className={styles.closeButton}>
           閉じる
         </button>
