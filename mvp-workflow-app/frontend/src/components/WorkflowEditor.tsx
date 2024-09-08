@@ -20,6 +20,7 @@ import styles from "../styles/WorkflowEditor.module.css";
 import { FaPlus, FaInfoCircle, FaCode, FaPlay } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
+import ApiPreview from "./ApiPreview";
 
 const nodeTypes: NodeType[] = ["start", "llm", "end"];
 
@@ -28,6 +29,7 @@ const WorkflowEditor: React.FC = () => {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<WorkflowNode | null>(null);
   const [showApiInfoModal, setShowApiInfoModal] = useState<boolean>(false);
+  const [showApiPreview, setShowApiPreview] = useState<boolean>(false);
   const [apiInfo, setApiInfo] = useState({
     apiEndpoint: "",
     description: "",
@@ -172,7 +174,7 @@ const WorkflowEditor: React.FC = () => {
             name: "Content-Type",
             value: "application/json",
             type: "string",
-            description: "レスポンスのContent-Type" || "", // デフォルト値を設定
+            description: "レスポンスのContent-Type" || "",
           },
         ],
         apiResponseBody,
@@ -192,8 +194,9 @@ const WorkflowEditor: React.FC = () => {
       setApiCreated(true);
 
       // APIの詳細情報を設定
-      const apiDetails = JSON.stringify(response.body, null, 2);
+      const apiDetails = JSON.stringify(workflowData, null, 2);
       setCreatedApiInfo(apiDetails);
+      setShowApiPreview(true);
     } catch (error) {
       console.error("API creation failed:", error);
       toast.error("APIの作成に失敗しました。");
@@ -314,14 +317,11 @@ const WorkflowEditor: React.FC = () => {
           </div>
         </div>
       )}
-      {apiCreated && (
-        <div className={styles.apiCreatedModal}>
-          <div className={styles.apiCreatedContent}>
-            <h2>API作成完了</h2>
-            <pre>{createdApiInfo}</pre>
-            <button onClick={() => setApiCreated(false)}>閉じる</button>
-          </div>
-        </div>
+      {showApiPreview && (
+        <ApiPreview
+          apiInfo={createdApiInfo}
+          onClose={() => setShowApiPreview(false)}
+        />
       )}
     </div>
   );
