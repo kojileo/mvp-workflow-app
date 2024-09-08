@@ -27,21 +27,32 @@ const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
           <h4>リクエストパラメータ:</h4>
           <ul>
             {apiInfo.apiRequestParameters &&
+            apiInfo.apiRequestParameters.length > 0 ? (
               apiInfo.apiRequestParameters.map((param, index) => (
                 <li key={index}>
                   {param.name} ({param.type}): {param.description}
+                  {param.required ? " (必須)" : " (任意)"}
+                  {param.default !== undefined
+                    ? ` デフォルト値: ${param.default}`
+                    : ""}
                 </li>
-              ))}
+              ))
+            ) : (
+              <li>リクエストパラメータはありません</li>
+            )}
           </ul>
 
           <h4>レスポンスボディ:</h4>
           <ul>
-            {apiInfo.apiResponseBody &&
+            {apiInfo.apiResponseBody && apiInfo.apiResponseBody.length > 0 ? (
               apiInfo.apiResponseBody.map((item, index) => (
                 <li key={index}>
                   {item.name}: {item.value}
                 </li>
-              ))}
+              ))
+            ) : (
+              <li>レスポンスボディの情報はありません</li>
+            )}
           </ul>
         </div>
         <button onClick={toggleApiTester} className={styles.testButton}>

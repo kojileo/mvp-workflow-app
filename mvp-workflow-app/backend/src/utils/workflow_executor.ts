@@ -39,7 +39,7 @@ export class WorkflowExecutor {
           input.text,
           node.nodeParameter.maxLength || 100
         );
-        return { ...input, summary };
+        return summary;
       // 他のAI機能も同様に実装できます
       default:
         throw new Error(
