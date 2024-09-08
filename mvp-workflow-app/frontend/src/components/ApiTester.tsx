@@ -4,9 +4,10 @@ import styles from "../styles/ApiTester.module.css";
 
 interface ApiTesterProps {
   apiEndpoint: string;
+  apiType: string;
 }
 
-const ApiTester: React.FC<ApiTesterProps> = ({ apiEndpoint }) => {
+const ApiTester: React.FC<ApiTesterProps> = ({ apiEndpoint, apiType }) => {
   const [inputText, setInputText] = useState("");
   const [result, setResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -15,9 +16,18 @@ const ApiTester: React.FC<ApiTesterProps> = ({ apiEndpoint }) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await axios.post(`http://localhost:8000${apiEndpoint}`, {
-        text: inputText,
-      });
+      let response;
+      if (apiType === "GET") {
+        response = await axios.get(
+          `http://localhost:8000${apiEndpoint}?text=${encodeURIComponent(
+            inputText
+          )}`
+        );
+      } else {
+        response = await axios.post(`http://localhost:8000${apiEndpoint}`, {
+          text: inputText,
+        });
+      }
       setResult(response.data);
     } catch (error) {
       console.error("API call failed:", error);

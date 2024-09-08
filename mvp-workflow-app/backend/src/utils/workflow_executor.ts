@@ -2,10 +2,18 @@ import { API } from "../models/api";
 import { AIService } from "../services/ai_service";
 
 export class WorkflowExecutor {
-  static async executeWorkflow(api: API): Promise<any> {
-    let result: any = {};
-    for (const step of api.flow) {
-      result = await this.executeStep(step.node, result);
+  static async executeWorkflow(api: API, inputText?: string): Promise<any> {
+    let result: any = { text: inputText || "Sample input text" };
+    if (Array.isArray(api.flow)) {
+      for (const step of api.flow) {
+        if (step && step.node) {
+          result = await this.executeStep(step.node, result);
+        } else {
+          console.error("Invalid step in api.flow:", step);
+        }
+      }
+    } else {
+      console.error("api.flow is not an array or is undefined:", api.flow);
     }
     return result;
   }

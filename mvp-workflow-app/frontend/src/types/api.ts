@@ -10,7 +10,7 @@ export interface Header {
   name: string;
   value: string;
   type: string;
-  description?: string; // 修正
+  description?: string;
 }
 
 export interface BodyItem {

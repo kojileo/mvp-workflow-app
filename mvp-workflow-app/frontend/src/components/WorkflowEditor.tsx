@@ -21,7 +21,6 @@ import { FaPlus, FaInfoCircle, FaCode, FaPlay } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import ApiPreview from "./ApiPreview";
-import ApiTester from "./ApiTester";
 
 const nodeTypes: NodeType[] = ["start", "llm", "end"];
 
@@ -123,62 +122,21 @@ const WorkflowEditor: React.FC = () => {
     }
 
     try {
-      const llmNode = nodes.find((node) => node.data.type === "llm");
-      const apiRequestParameters: Parameter[] = [];
-      const apiResponseBody: BodyItem[] = [];
-
-      if (llmNode && llmNode.data.params.aiFunction === "summarize") {
-        if (llmNode.data.params.fileInput) {
-          apiRequestParameters.push({
-            name: "file",
-            type: "file",
-            description: "アップロードするファイル",
-            required: true,
-          });
-        }
-        if (llmNode.data.params.maxLength) {
-          apiRequestParameters.push({
-            name: "max_length",
-            type: "number",
-            description: "要約の最大文字数",
-            required: false,
-            default: parseInt(llmNode.data.params.maxLength),
-          });
-        }
-        if (llmNode.data.params.language) {
-          apiRequestParameters.push({
-            name: "language",
-            type: "string",
-            description: "要約の言語",
-            required: false,
-            default: llmNode.data.params.language,
-          });
-        }
-
-        apiResponseBody.push(
-          { name: "summary", value: "要約されたテキスト" },
-          { name: "original_language", value: "検出された元の言語" },
-          { name: "character_count", value: 0 },
-          { name: "processing_time", value: 0 }
-        );
-      }
-
       const workflowData: API = {
         apiEndPoint: apiInfo.apiEndpoint,
         description: apiInfo.description,
         apiType: apiInfo.apiType,
-        apiRequestParameters,
+        apiRequestParameters: apiInfo.requestParameters,
         apiRequestHeaders: apiInfo.requestHeaders,
-        apiRequestBody: apiInfo.requestBody,
+        apiRequestBody: [],
         apiResponseHeaders: [
           {
             name: "Content-Type",
             value: "application/json",
             type: "string",
-            description: "レスポンスのContent-Type" || "",
           },
         ],
-        apiResponseBody,
+        apiResponseBody: [],
         flow: nodes.map((node) => ({
           node: {
             nodeName: node.data.label,
@@ -189,10 +147,12 @@ const WorkflowEditor: React.FC = () => {
         })),
       };
 
-      const apiDetails = JSON.stringify(workflowData, null, 2);
+      const response = await createApi({ workflow: workflowData });
+      const apiDetails = JSON.stringify(response, null, 2);
       setApiCreated(true);
       setCreatedApiInfo(apiDetails);
       setShowApiPreview(true);
+      saveCreatedApi(response);
     } catch (error) {
       console.error("API creation failed:", error);
       toast.error("APIの作成に失敗しました。");
@@ -315,7 +275,7 @@ const WorkflowEditor: React.FC = () => {
       )}
       {showApiPreview && (
         <ApiPreview
-          apiInfo={createdApiInfo}
+          apiInfo={JSON.parse(createdApiInfo)}
           onClose={() => setShowApiPreview(false)}
         />
       )}
