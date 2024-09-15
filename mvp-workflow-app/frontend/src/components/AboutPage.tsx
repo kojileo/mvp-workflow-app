@@ -57,7 +57,7 @@ const AboutPage: React.FC = () => {
         <Section>
           <SectionTitle>概要</SectionTitle>
           <p>
-            AIクリエイトスタジオは、AIを活用した革新的なワークフロー作成ツールです。
+            AIクリエイトスタジオは、AI機能に関するAPI作成ツールです。
             複雑なタスクを視覚的に設計し、自動化することができます。
           </p>
         </Section>

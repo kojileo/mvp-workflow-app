@@ -19,9 +19,7 @@ const NavLink = styled(Link)`
   }
 `;
 
-const MainContent = styled.main`
-  padding: 2rem;
-`;
+const MainContent = styled.main``;
 
 const NotFound = () => (
   <div>

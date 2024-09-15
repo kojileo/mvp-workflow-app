@@ -61,8 +61,7 @@ const TitlePage: React.FC = () => {
     <PageContainer>
       <Title>AIクリエイトスタジオ</Title>
       <Subtitle>
-        AIパワードワークフローで、あなたのクリエイティブプロセスを革新しましょう。
-        直感的なインターフェースで、複雑なタスクを簡単に自動化できます。
+        AIに関連する自作WebAPIを作成し、自身が作成したWebアプリに組み込もう
       </Subtitle>
       <ButtonContainer>
         <StyledButton to="/app">アプリを起動</StyledButton>
