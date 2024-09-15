@@ -85,6 +85,35 @@ const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
     );
   };
 
+  const renderRequestSection = () => {
+    const isFileInput = apiInfo.flow.some(
+      (item) => item.node.nodeParameter?.fileInput
+    );
+
+    if (isFileInput) {
+      return (
+        <>
+          <h4>リクエスト:</h4>
+          <p>このAPIはファイル入力を受け付けます。</p>
+          <p>受け付けるファイル形式: PDF, TXT, etc.</p>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <h4>リクエストパラメータ:</h4>
+          {renderList(apiInfo.apiRequestParameters, renderParameter)}
+
+          <h4>リクエストヘッダー:</h4>
+          {renderList(apiInfo.apiRequestHeaders, renderHeader)}
+
+          <h4>リクエストボディ:</h4>
+          {renderList(apiInfo.apiRequestBody, renderBodyItem)}
+        </>
+      );
+    }
+  };
+
   if (!apiInfo) {
     return <div>API情報が利用できません。</div>;
   }
@@ -98,14 +127,7 @@ const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
           <h3>説明: {apiInfo.description}</h3>
           <h3>APIタイプ: {apiInfo.apiType}</h3>
 
-          <h4>リクエストパラメータ:</h4>
-          {renderList(apiInfo.apiRequestParameters, renderParameter)}
-
-          <h4>リクエストヘッダー:</h4>
-          {renderList(apiInfo.apiRequestHeaders, renderHeader)}
-
-          <h4>リクエストボディ:</h4>
-          {renderList(apiInfo.apiRequestBody, renderBodyItem)}
+          {renderRequestSection()}
 
           <h4>レスポンスヘッダー:</h4>
           {renderList(apiInfo.apiResponseHeaders, renderHeader)}

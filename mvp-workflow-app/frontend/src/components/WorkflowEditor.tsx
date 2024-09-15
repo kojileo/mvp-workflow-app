@@ -162,25 +162,11 @@ const WorkflowEditor: React.FC = () => {
         ],
         apiRequestBody: [
           {
-            name: "text",
-            type: "string",
-            description: "要約するテキスト",
+            name: "file",
+            type: "file",
+            description: "アップロードするファイル",
             required: true,
             value: "", // 空文字列を初期値として設定
-          },
-          {
-            name: "max_length",
-            type: "number",
-            description: "要約の最大長",
-            required: false,
-            value: 100, // デフォルト値を設定
-          },
-          {
-            name: "language",
-            type: "string",
-            description: "要約の言語",
-            required: false,
-            value: "日本語", // デフォルト値を設定
           },
         ],
         apiResponseHeaders: [],
@@ -208,15 +194,33 @@ const WorkflowEditor: React.FC = () => {
           node: {
             nodeName: node.data.label,
             nodeType: node.data.type,
-            nodeParameter: node.data.params,
+            nodeParameter: {
+              ...node.data.params,
+              fileInput: node.data.params.fileInput || false,
+            },
             entryPoint: node.data.type === "start",
           },
         })),
       };
 
+      // ファイル入力が有効な場合、リクエストボディを調整
+      if (
+        workflowData.flow.some((item) => item.node.nodeParameter?.fileInput)
+      ) {
+        workflowData.apiRequestBody = [
+          {
+            name: "file",
+            type: "file",
+            description: "アップロードするファイル",
+            required: true,
+            value: "", // 空文字列を初期値として設定
+          },
+        ];
+      }
+
       const response = await createApi({ workflow: workflowData });
       setApiCreated(true);
-      setCreatedApiInfo(workflowData); // workflowDataを直接使用
+      setCreatedApiInfo(workflowData);
       setShowApiPreview(true);
       saveCreatedApi(workflowData);
     } catch (error) {
