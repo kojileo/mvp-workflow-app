@@ -14,10 +14,10 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { createApi } from "../services/api";
 import { NodeType, WorkflowNode, NodeData } from "../types/workflow";
-import { API, Parameter, Header, BodyItem, Workflow } from "../types/api";
+import { API, Workflow } from "../types/api";
 import NodeSettings from "./NodeSettings";
 import styles from "../styles/WorkflowEditor.module.css";
-import { FaPlus, FaInfoCircle, FaCode, FaPlay } from "react-icons/fa";
+import { FaPlus, FaInfoCircle, FaCode } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import ApiPreview from "./ApiPreview";
