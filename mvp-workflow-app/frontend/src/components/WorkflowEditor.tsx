@@ -14,7 +14,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { createApi } from "../services/api";
 import { NodeType, WorkflowNode, NodeData } from "../types/workflow";
-import { Parameter, BodyItem, API } from "../types/api"; // 追加
+import { API, Parameter, Header, BodyItem, Workflow } from "../types/api";
 import NodeSettings from "./NodeSettings";
 import styles from "../styles/WorkflowEditor.module.css";
 import { FaPlus, FaInfoCircle, FaCode, FaPlay } from "react-icons/fa";
@@ -40,7 +40,7 @@ const WorkflowEditor: React.FC = () => {
   });
   const [isValidWorkflow, setIsValidWorkflow] = useState<boolean>(false);
   const [apiCreated, setApiCreated] = useState(false);
-  const [createdApiInfo, setCreatedApiInfo] = useState("");
+  const [createdApiInfo, setCreatedApiInfo] = useState<API | null>(null);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -122,21 +122,88 @@ const WorkflowEditor: React.FC = () => {
     }
 
     try {
-      const workflowData: API = {
+      const workflowData: Workflow = {
         apiEndPoint: apiInfo.apiEndpoint,
         description: apiInfo.description,
         apiType: apiInfo.apiType,
-        apiRequestParameters: apiInfo.requestParameters,
-        apiRequestHeaders: apiInfo.requestHeaders,
-        apiRequestBody: [],
-        apiResponseHeaders: [
+        apiRequestParameters: [
+          {
+            name: "text",
+            type: "string",
+            description: "要約するテキスト",
+            required: true,
+          },
+          {
+            name: "max_length",
+            type: "number",
+            description: "要約の最大長",
+            required: false,
+            defaultValue: 100,
+          },
+          {
+            name: "language",
+            type: "string",
+            description: "要約の言語",
+            required: false,
+            defaultValue: "日本語",
+          },
+        ],
+        apiRequestHeaders: [
           {
             name: "Content-Type",
             value: "application/json",
             type: "string",
           },
+          {
+            name: "Authorization",
+            value: "Bearer YOUR_API_KEY",
+            type: "string",
+          },
         ],
-        apiResponseBody: [],
+        apiRequestBody: [
+          {
+            name: "text",
+            type: "string",
+            description: "要約するテキスト",
+            required: true,
+            value: "", // 空文字列を初期値として設定
+          },
+          {
+            name: "max_length",
+            type: "number",
+            description: "要約の最大長",
+            required: false,
+            value: 100, // デフォルト値を設定
+          },
+          {
+            name: "language",
+            type: "string",
+            description: "要約の言語",
+            required: false,
+            value: "日本語", // デフォルト値を設定
+          },
+        ],
+        apiResponseHeaders: [],
+        apiResponseBody: [
+          {
+            name: "summary",
+            type: "string",
+            description: "生成された要約テキスト",
+            value: "", // 空文字列を初期値として設定
+          },
+          {
+            name: "original_length",
+            type: "number",
+            description: "元のテキストの長さ",
+            value: 0, // 初期値を0に設定
+          },
+          {
+            name: "summary_length",
+            type: "number",
+            description: "要約テキストの長さ",
+            value: 0, // 初期値を0に設定
+          },
+        ],
         flow: nodes.map((node) => ({
           node: {
             nodeName: node.data.label,
@@ -148,11 +215,10 @@ const WorkflowEditor: React.FC = () => {
       };
 
       const response = await createApi({ workflow: workflowData });
-      const apiDetails = JSON.stringify(response, null, 2);
       setApiCreated(true);
-      setCreatedApiInfo(apiDetails);
+      setCreatedApiInfo(workflowData); // workflowDataを直接使用
       setShowApiPreview(true);
-      saveCreatedApi(response);
+      saveCreatedApi(workflowData);
     } catch (error) {
       console.error("API creation failed:", error);
       toast.error("APIの作成に失敗しました。");
@@ -273,9 +339,9 @@ const WorkflowEditor: React.FC = () => {
           </div>
         </div>
       )}
-      {showApiPreview && (
+      {showApiPreview && createdApiInfo && (
         <ApiPreview
-          apiInfo={JSON.parse(createdApiInfo)}
+          apiInfo={createdApiInfo}
           onClose={() => setShowApiPreview(false)}
         />
       )}

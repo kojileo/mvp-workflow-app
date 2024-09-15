@@ -1,4 +1,5 @@
 import { Node, Edge } from "reactflow";
+import { BodyItem } from "./api";
 
 export interface WorkflowNodeData {
   label: string;
@@ -72,10 +73,4 @@ export interface Workflow {
       entryPoint: boolean;
     };
   }[];
-}
-
-export interface BodyItem {
-  name: string;
-
-  value: string | number;
 }

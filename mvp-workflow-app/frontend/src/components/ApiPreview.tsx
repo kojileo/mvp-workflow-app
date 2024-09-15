@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "../styles/ApiPreview.module.css";
 import ApiTester from "./ApiTester";
-import { API } from "../types/api";
+import { API, Parameter, Header, BodyItem } from "../types/api";
 
 interface ApiPreviewProps {
   apiInfo: API;
@@ -15,6 +15,80 @@ const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
     setShowApiTester(!showApiTester);
   };
 
+  const renderList = (
+    items: any[] | undefined,
+    itemRenderer: (item: any) => React.ReactNode
+  ) => {
+    if (!items || items.length === 0) {
+      return <p>情報はありません。</p>;
+    }
+    return (
+      <ul>
+        {items.map((item, index) => (
+          <li key={index}>{itemRenderer(item)}</li>
+        ))}
+      </ul>
+    );
+  };
+
+  const renderParameter = (param: Parameter) => (
+    <>
+      {param.name} ({param.type}): {param.description}
+      {param.required ? " (必須)" : " (任意)"}
+      {param.defaultValue !== undefined &&
+        ` (デフォルト値: ${param.defaultValue})`}
+    </>
+  );
+
+  const renderHeader = (header: Header) => (
+    <>
+      {header.name}: {header.value} (型: {header.type})
+    </>
+  );
+
+  const renderBodyItem = (item: BodyItem) => (
+    <>
+      {item.name} ({item.type}): {item.description}
+      {item.required !== undefined && (item.required ? " (必須)" : " (任意)")}
+      {item.value !== undefined && ` (値: ${item.value})`}
+    </>
+  );
+
+  const renderFlow = (flow: API["flow"] | undefined) => {
+    if (!flow || flow.length === 0) {
+      return <p>ワークフロー情報はありません。</p>;
+    }
+    return (
+      <ul>
+        {flow.map((flowItem, index) => (
+          <li key={index}>
+            ノード名: {flowItem.node.nodeName}, タイプ: {flowItem.node.nodeType}
+            , エントリーポイント: {flowItem.node.entryPoint ? "はい" : "いいえ"}
+            {flowItem.node.nodeParameter &&
+              Object.keys(flowItem.node.nodeParameter).length > 0 && (
+                <>
+                  , パラメータ:
+                  <ul>
+                    {Object.entries(flowItem.node.nodeParameter).map(
+                      ([key, value]) => (
+                        <li key={key}>
+                          {key}: {value}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                </>
+              )}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  if (!apiInfo) {
+    return <div>API情報が利用できません。</div>;
+  }
+
   return (
     <div className={styles.apiPreviewOverlay}>
       <div className={styles.apiPreviewContent}>
@@ -25,45 +99,27 @@ const ApiPreview: React.FC<ApiPreviewProps> = ({ apiInfo, onClose }) => {
           <h3>APIタイプ: {apiInfo.apiType}</h3>
 
           <h4>リクエストパラメータ:</h4>
-          <ul>
-            {apiInfo.apiRequestParameters &&
-            apiInfo.apiRequestParameters.length > 0 ? (
-              apiInfo.apiRequestParameters.map((param, index) => (
-                <li key={index}>
-                  {param.name} ({param.type}): {param.description}
-                  {param.required ? " (必須)" : " (任意)"}
-                  {param.default !== undefined
-                    ? ` デフォルト値: ${param.default}`
-                    : ""}
-                </li>
-              ))
-            ) : (
-              <li>リクエストパラメータはありません</li>
-            )}
-          </ul>
+          {renderList(apiInfo.apiRequestParameters, renderParameter)}
+
+          <h4>リクエストヘッダー:</h4>
+          {renderList(apiInfo.apiRequestHeaders, renderHeader)}
+
+          <h4>リクエストボディ:</h4>
+          {renderList(apiInfo.apiRequestBody, renderBodyItem)}
+
+          <h4>レスポンスヘッダー:</h4>
+          {renderList(apiInfo.apiResponseHeaders, renderHeader)}
 
           <h4>レスポンスボディ:</h4>
-          <ul>
-            {apiInfo.apiResponseBody && apiInfo.apiResponseBody.length > 0 ? (
-              apiInfo.apiResponseBody.map((item, index) => (
-                <li key={index}>
-                  {item.name}: {item.value}
-                </li>
-              ))
-            ) : (
-              <li>レスポンスボディの情報はありません</li>
-            )}
-          </ul>
+          {renderList(apiInfo.apiResponseBody, renderBodyItem)}
+
+          <h4>ワークフロー:</h4>
+          {renderFlow(apiInfo.flow)}
         </div>
         <button onClick={toggleApiTester} className={styles.testButton}>
           {showApiTester ? "APIテスターを閉じる" : "APIをテスト"}
         </button>
-        {showApiTester && (
-          <ApiTester
-            apiEndpoint={apiInfo.apiEndPoint}
-            apiType={apiInfo.apiType}
-          />
-        )}
+        {showApiTester && <ApiTester apiInfo={apiInfo} />}
         <button onClick={onClose} className={styles.closeButton}>
           閉じる
         </button>

@@ -3,19 +3,22 @@ export interface Parameter {
   type: string;
   description: string;
   required: boolean;
-  default?: string | number;
+  defaultValue?: string | number | boolean;
 }
 
 export interface Header {
   name: string;
   value: string;
-  type: string;
+  type: string; // typeを必須に戻す
   description?: string;
 }
 
 export interface BodyItem {
   name: string;
-  value: string | number;
+  type: string;
+  description?: string;
+  required?: boolean;
+  value: string | number; // undefinedを削除
 }
 
 export interface NodeParameter {
@@ -35,11 +38,9 @@ export interface API {
   apiResponseHeaders: Header[];
   apiResponseBody: BodyItem[];
   flow: {
-    node: {
-      nodeName: string;
-      nodeType: string;
-      nodeParameter: Record<string, any>;
-      entryPoint: boolean;
-    };
-  }[]; // 修正
+    node: NodeParameter;
+  }[];
 }
+
+// Workflowの型定義をAPIと同じにする
+export type Workflow = API;
